@@ -1,3 +1,3 @@
-# [Ticket Breakdown ↗](./Ticket%20Breakdown/README.md)
+# [Ticket Breakdown ↗](./Ticket%20Breakdown)
 
-# [Refactoring ↗](./Refactoring/README.md)
+# [Refactoring ↗](./Refactoring)
