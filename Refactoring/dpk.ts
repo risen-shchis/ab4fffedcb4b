@@ -1,33 +1,32 @@
 import crypto from "crypto";
 
+const TRIVIAL_PARTITION_KEY = "0";
+const MAX_PARTITION_KEY_LENGTH = 256;
+
 interface MessageEvent {
   partitionKey?: unknown;
   [key: string]: unknown;
 }
 
+const hexHash = (data: string) =>
+  crypto.createHash("sha3-512").update(data).digest("hex");
+
 export const deterministicPartitionKey = (event?: MessageEvent) => {
-  const TRIVIAL_PARTITION_KEY = "0";
-  const MAX_PARTITION_KEY_LENGTH = 256;
-  let candidate;
-
-  if (event) {
-    if (event.partitionKey) {
-      candidate = event.partitionKey;
-    } else {
-      const data = JSON.stringify(event);
-      candidate = crypto.createHash("sha3-512").update(data).digest("hex");
-    }
+  if (!event) {
+    return TRIVIAL_PARTITION_KEY;
   }
 
-  if (candidate) {
-    if (typeof candidate !== "string") {
-      candidate = JSON.stringify(candidate);
-    }
-  } else {
-    candidate = TRIVIAL_PARTITION_KEY;
+  if (!event.partitionKey) {
+    return hexHash(JSON.stringify(event));
   }
-  if (candidate.length > MAX_PARTITION_KEY_LENGTH) {
-    candidate = crypto.createHash("sha3-512").update(candidate).digest("hex");
-  }
-  return candidate;
+
+  const { partitionKey } = event;
+  const partitionKeyString =
+    typeof partitionKey === "string"
+      ? partitionKey
+      : JSON.stringify(partitionKey);
+
+  return partitionKeyString.length > MAX_PARTITION_KEY_LENGTH
+    ? hexHash(partitionKeyString)
+    : partitionKeyString;
 };
